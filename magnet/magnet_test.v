@@ -320,7 +320,7 @@ fn test_hash_format_functions() {
 
 	// Test v2 hash formatting
 	mut v2_hash := [32]u8{}
-	for i in 0..32 {
+	for i in 0 .. 32 {
 		v2_hash[i] = u8(0xd2)
 	}
 	formatted_v2 := format_hash_v2(v2_hash)
