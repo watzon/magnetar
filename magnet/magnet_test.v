@@ -319,13 +319,13 @@ fn test_hash_format_functions() {
 	assert formatted_v1 == '1234567890abcdef1234567890abcdef12345678'
 
 	// Test v2 hash formatting
-	// mut v2_hash := [32]u8{}
-	// for i in 0..32 {
-	//	v2_hash[i] = u8(0xd2)
-	// }
-	// formatted_v2 := format_hash_v2(v2_hash)
-	// assert formatted_v2.starts_with('1220')
-	// assert formatted_v2.len == 68 // 4 + 64 hex chars
+	mut v2_hash := [32]u8{}
+	for i in 0..32 {
+		v2_hash[i] = u8(0xd2)
+	}
+	formatted_v2 := format_hash_v2(v2_hash)
+	assert formatted_v2.starts_with('1220')
+	assert formatted_v2.len == 68 // 4 + 64 hex chars
 }
 
 fn test_utility_functions() {

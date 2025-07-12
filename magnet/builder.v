@@ -75,10 +75,10 @@ pub fn (mut b MagnetBuilder) set_info_hash_bytes(hash []u8) MagnetBuilder {
 	return b
 }
 
-// pub fn (mut b MagnetBuilder) set_info_hash_v2_bytes(hash [32]u8) MagnetBuilder {
-//	b.magnet.info_hash_v2 = format_hash_v2(hash)
-//	return b
-// }
+pub fn (mut b MagnetBuilder) set_info_hash_v2_bytes(hash [32]u8) MagnetBuilder {
+	b.magnet.info_hash_v2 = format_hash_v2(hash)
+	return b
+}
 
 pub fn (mut b MagnetBuilder) set_display_name(name string) MagnetBuilder {
 	b.magnet.display_name = name
@@ -233,15 +233,15 @@ fn format_hash(hash [20]u8) string {
 	return result
 }
 
-// fn format_hash_v2(hash [32]u8) string {
-//	// For v2, we need to format as multihash
-//	// SHA-256 multihash prefix is 0x1220 (0x12 = SHA-256, 0x20 = 32 bytes)
-//	mut result := '1220'
-//	for b in hash {
-//		result += '${b:02x}'
-//	}
-//	return result
-// }
+fn format_hash_v2(hash [32]u8) string {
+	// For v2, we need to format as multihash
+	// SHA-256 multihash prefix is 0x1220 (0x12 = SHA-256, 0x20 = 32 bytes)
+	mut result := '1220'
+	for b in hash {
+		result += '${b:02x}'
+	}
+	return result
+}
 
 fn is_valid_url(url string) bool {
 	return url.starts_with('http://') || url.starts_with('https://') || url.starts_with('udp://')
