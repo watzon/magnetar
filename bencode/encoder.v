@@ -52,23 +52,33 @@ fn encode_to_builder(value BencodeValue, mut builder strings.Builder) {
 
 // Helper function to create bencode values
 pub fn bencode_string(s string) BencodeString {
-	return BencodeString{value: s.bytes()}
+	return BencodeString{
+		value: s.bytes()
+	}
 }
 
 pub fn bencode_bytes(b []u8) BencodeString {
-	return BencodeString{value: b}
+	return BencodeString{
+		value: b
+	}
 }
 
 pub fn bencode_int(i i64) BencodeInteger {
-	return BencodeInteger{value: i}
+	return BencodeInteger{
+		value: i
+	}
 }
 
 pub fn bencode_list(values ...BencodeValue) BencodeList {
-	return BencodeList{values: values}
+	return BencodeList{
+		values: values
+	}
 }
 
 pub fn bencode_dict() BencodeDictionary {
-	return BencodeDictionary{pairs: map[string]BencodeValue{}}
+	return BencodeDictionary{
+		pairs: map[string]BencodeValue{}
+	}
 }
 
 pub fn (mut d BencodeDictionary) set(key string, value BencodeValue) {

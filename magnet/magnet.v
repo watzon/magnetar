@@ -5,12 +5,12 @@ import net.urllib
 pub struct MagnetLink {
 pub mut:
 	// Core BitTorrent parameters
-	info_hash     string   // xt: exact topic (btih hash)
-	info_hash_v2  string   // xt: exact topic (btmh hash for v2)
-	display_name  string   // dn: display name
-	trackers      []string // tr: tracker URLs
-	peers         []string // x.pe: peer addresses
-	
+	info_hash    string   // xt: exact topic (btih hash)
+	info_hash_v2 string   // xt: exact topic (btmh hash for v2)
+	display_name string   // dn: display name
+	trackers     []string // tr: tracker URLs
+	peers        []string // x.pe: peer addresses
+
 	// Extended parameters
 	web_seeds     []string // ws: web seed URLs
 	exact_sources []string // xs: exact source URLs (.torrent file)
@@ -18,9 +18,9 @@ pub mut:
 	keywords      []string // kt: keyword topic
 	exact_length  i64      // xl: exact length in bytes
 	select_only   []int    // so: select only specific file indices
-	
+
 	// Any additional x.* parameters
-	extensions    map[string]string
+	extensions map[string]string
 }
 
 pub struct MagnetError {
@@ -49,28 +49,28 @@ pub:
 pub fn parse(magnet_uri string) !MagnetLink {
 	if !magnet_uri.starts_with('magnet:?') {
 		return error(MagnetError{
-			msg: 'magnet URI must start with "magnet:?"'
+			msg:   'magnet URI must start with "magnet:?"'
 			param: 'uri'
 		}.msg())
 	}
-	
+
 	// Remove the magnet:? prefix
 	query_string := magnet_uri[8..]
-	
+
 	// Parse URL query parameters manually
 	params := parse_query_params(query_string)
-	
+
 	mut mag := MagnetLink{}
-	
+
 	// Parse exact topic (info hash) - required parameter
 	if xt_values := params['xt'] {
 		if xt_values.len == 0 {
 			return error(MagnetError{
-				msg: 'xt parameter cannot be empty'
+				msg:   'xt parameter cannot be empty'
 				param: 'xt'
 			}.msg())
 		}
-		
+
 		// Parse the first xt value (primary hash)
 		parsed_hash := parse_exact_topic(xt_values[0])!
 		match parsed_hash.hash_type {
@@ -81,7 +81,7 @@ pub fn parse(magnet_uri string) !MagnetLink {
 				mag.info_hash_v2 = parsed_hash.hash
 			}
 		}
-		
+
 		// Handle additional xt values (for hybrid torrents)
 		for i := 1; i < xt_values.len; i++ {
 			additional_hash := parse_exact_topic(xt_values[i])!
@@ -100,31 +100,31 @@ pub fn parse(magnet_uri string) !MagnetLink {
 		}
 	} else {
 		return error(MagnetError{
-			msg: 'missing required parameter'
+			msg:   'missing required parameter'
 			param: 'xt'
 		}.msg())
 	}
-	
+
 	// Parse optional parameters
 	if dn_values := params['dn'] {
 		if dn_values.len > 0 {
 			mag.display_name = urllib.query_unescape(dn_values[0]) or { dn_values[0] }
 		}
 	}
-	
+
 	if tr_values := params['tr'] {
 		for tr in tr_values {
 			decoded := urllib.query_unescape(tr) or { tr }
 			mag.trackers << decoded
 		}
 	}
-	
+
 	if pe_values := params['x.pe'] {
 		for pe in pe_values {
 			mag.peers << pe
 		}
 	}
-	
+
 	// Parse extended parameters
 	if ws_values := params['ws'] {
 		for ws in ws_values {
@@ -132,40 +132,40 @@ pub fn parse(magnet_uri string) !MagnetLink {
 			mag.web_seeds << decoded
 		}
 	}
-	
+
 	if xs_values := params['xs'] {
 		for xs in xs_values {
 			decoded := urllib.query_unescape(xs) or { xs }
 			mag.exact_sources << decoded
 		}
 	}
-	
+
 	if as_values := params['as'] {
 		for as_val in as_values {
 			decoded := urllib.query_unescape(as_val) or { as_val }
 			mag.alt_sources << decoded
 		}
 	}
-	
+
 	if kt_values := params['kt'] {
 		for kt in kt_values {
 			decoded := urllib.query_unescape(kt) or { kt }
 			mag.keywords << decoded
 		}
 	}
-	
+
 	if xl_values := params['xl'] {
 		if xl_values.len > 0 {
 			mag.exact_length = xl_values[0].i64()
 		}
 	}
-	
+
 	if so_values := params['so'] {
 		if so_values.len > 0 {
 			mag.select_only = parse_select_only(so_values[0])!
 		}
 	}
-	
+
 	// Parse any x.* extension parameters
 	for key, values in params {
 		if key.starts_with('x.') && key != 'x.pe' {
@@ -174,14 +174,14 @@ pub fn parse(magnet_uri string) !MagnetLink {
 			}
 		}
 	}
-	
+
 	return mag
 }
 
 // Generate a magnet URI string from a MagnetLink struct
 pub fn (m MagnetLink) to_string() string {
 	mut params := []string{}
-	
+
 	// Add exact topic (required)
 	if m.info_hash.len > 0 {
 		params << 'xt=urn:btih:${m.info_hash}'
@@ -189,64 +189,64 @@ pub fn (m MagnetLink) to_string() string {
 	if m.info_hash_v2.len > 0 {
 		params << 'xt=urn:btmh:${m.info_hash_v2}'
 	}
-	
+
 	// Add display name
 	if m.display_name.len > 0 {
 		encoded := urllib.query_escape(m.display_name)
 		params << 'dn=${encoded}'
 	}
-	
+
 	// Add trackers
 	for tracker in m.trackers {
 		encoded := urllib.query_escape(tracker)
 		params << 'tr=${encoded}'
 	}
-	
+
 	// Add peers
 	for peer in m.peers {
 		params << 'x.pe=${peer}'
 	}
-	
+
 	// Add web seeds
 	for ws in m.web_seeds {
 		encoded := urllib.query_escape(ws)
 		params << 'ws=${encoded}'
 	}
-	
+
 	// Add exact sources
 	for xs in m.exact_sources {
 		encoded := urllib.query_escape(xs)
 		params << 'xs=${encoded}'
 	}
-	
+
 	// Add alternate sources
 	for as_val in m.alt_sources {
 		encoded := urllib.query_escape(as_val)
 		params << 'as=${encoded}'
 	}
-	
+
 	// Add keywords
 	for kt in m.keywords {
 		encoded := urllib.query_escape(kt)
 		params << 'kt=${encoded}'
 	}
-	
+
 	// Add exact length
 	if m.exact_length > 0 {
 		params << 'xl=${m.exact_length}'
 	}
-	
+
 	// Add select only
 	if m.select_only.len > 0 {
 		so_str := format_select_only(m.select_only)
 		params << 'so=${so_str}'
 	}
-	
+
 	// Add extensions
 	for key, value in m.extensions {
 		params << '${key}=${value}'
 	}
-	
+
 	return 'magnet:?' + params.join('&')
 }
 
@@ -258,29 +258,29 @@ fn parse_exact_topic(xt string) !ParsedHash {
 			// Hex encoding
 			if !is_hex(hash) {
 				return error(MagnetError{
-					msg: 'invalid hex encoding in info hash'
+					msg:   'invalid hex encoding in info hash'
 					param: 'xt'
 				}.msg())
 			}
 			return ParsedHash{
 				hash_type: .btih_v1
-				hash: hash.to_lower()
+				hash:      hash.to_lower()
 			}
 		} else if hash.len == 32 {
 			// Base32 encoding
 			if !is_base32(hash) {
 				return error(MagnetError{
-					msg: 'invalid base32 encoding in info hash'
+					msg:   'invalid base32 encoding in info hash'
 					param: 'xt'
 				}.msg())
 			}
 			return ParsedHash{
 				hash_type: .btih_v1
-				hash: hash.to_lower()
+				hash:      hash.to_lower()
 			}
 		} else {
 			return error(MagnetError{
-				msg: 'info hash must be 40 hex chars or 32 base32 chars'
+				msg:   'info hash must be 40 hex chars or 32 base32 chars'
 				param: 'xt'
 			}.msg())
 		}
@@ -289,18 +289,18 @@ fn parse_exact_topic(xt string) !ParsedHash {
 		hash := xt[9..]
 		if hash.len < 4 {
 			return error(MagnetError{
-				msg: 'v2 hash too short'
+				msg:   'v2 hash too short'
 				param: 'xt'
 			}.msg())
 		}
 		return ParsedHash{
 			hash_type: .btmh_v2
-			hash: hash.to_lower()
+			hash:      hash.to_lower()
 		}
 	}
-	
+
 	return error(MagnetError{
-		msg: 'exact topic must start with urn:btih: or urn:btmh:'
+		msg:   'exact topic must start with urn:btih: or urn:btmh:'
 		param: 'xt'
 	}.msg())
 }
@@ -308,7 +308,7 @@ fn parse_exact_topic(xt string) !ParsedHash {
 // Parse select-only parameter (so)
 fn parse_select_only(so string) ![]int {
 	mut indices := []int{}
-	
+
 	parts := so.split(',')
 	for part in parts {
 		part_trimmed := part.trim_space()
@@ -317,7 +317,7 @@ fn parse_select_only(so string) ![]int {
 			range_parts := part_trimmed.split('-')
 			if range_parts.len != 2 {
 				return error(MagnetError{
-					msg: 'invalid range format in select-only'
+					msg:   'invalid range format in select-only'
 					param: 'so'
 				}.msg())
 			}
@@ -325,7 +325,7 @@ fn parse_select_only(so string) ![]int {
 			end := range_parts[1].int()
 			if start > end {
 				return error(MagnetError{
-					msg: 'invalid range: start > end'
+					msg:   'invalid range: start > end'
 					param: 'so'
 				}.msg())
 			}
@@ -338,7 +338,7 @@ fn parse_select_only(so string) ![]int {
 			indices << index
 		}
 	}
-	
+
 	return indices
 }
 
@@ -347,14 +347,14 @@ fn format_select_only(indices []int) string {
 	if indices.len == 0 {
 		return ''
 	}
-	
+
 	mut sorted := indices.clone()
 	sorted.sort()
-	
+
 	mut parts := []string{}
 	mut start := sorted[0]
 	mut end := start
-	
+
 	for i := 1; i < sorted.len; i++ {
 		if sorted[i] == end + 1 {
 			end = sorted[i]
@@ -368,14 +368,14 @@ fn format_select_only(indices []int) string {
 			end = start
 		}
 	}
-	
+
 	// Add the last range/index
 	if start == end {
 		parts << '${start}'
 	} else {
 		parts << '${start}-${end}'
 	}
-	
+
 	return parts.join(',')
 }
 
@@ -405,32 +405,32 @@ fn is_base32(s string) bool {
 // Parse query parameters manually
 fn parse_query_params(query_string string) map[string][]string {
 	mut params := map[string][]string{}
-	
+
 	if query_string.len == 0 {
 		return params
 	}
-	
+
 	parts := query_string.split('&')
 	for part in parts {
 		if part.len == 0 {
 			continue
 		}
-		
+
 		kv := part.split_nth('=', 2)
 		if kv.len != 2 {
 			continue
 		}
-		
+
 		key := urllib.query_unescape(kv[0]) or { kv[0] }
 		value := urllib.query_unescape(kv[1]) or { kv[1] }
-		
+
 		if key in params {
 			params[key] << value
 		} else {
 			params[key] = [value]
 		}
 	}
-	
+
 	return params
 }
 

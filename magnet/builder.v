@@ -16,23 +16,23 @@ pub fn new_builder() MagnetBuilder {
 // Create a magnet link from torrent metadata
 pub fn from_torrent(metadata torrent.TorrentMetadata) MagnetLink {
 	mut mag := MagnetLink{}
-	
+
 	// Set info hash
 	mag.info_hash = format_hash(metadata.info_hash)
-	
+
 	// Set v2 info hash if available
 	// if v2_hash := metadata.info_hash_v2 {
 	//	mag.info_hash_v2 = format_hash_v2(v2_hash)
 	// }
-	
+
 	// Set display name
 	mag.display_name = metadata.info.name
-	
+
 	// Add primary tracker
 	if metadata.announce.len > 0 {
 		mag.trackers << metadata.announce
 	}
-	
+
 	// Add announce list trackers
 	for tier in metadata.announce_list {
 		for tracker in tier {
@@ -41,14 +41,14 @@ pub fn from_torrent(metadata torrent.TorrentMetadata) MagnetLink {
 			}
 		}
 	}
-	
+
 	// Set exact length for single-file torrents
 	if length := metadata.info.length {
 		mag.exact_length = length
 	} else {
 		mag.exact_length = metadata.total_size()
 	}
-	
+
 	return mag
 }
 
@@ -66,7 +66,7 @@ pub fn (mut b MagnetBuilder) set_info_hash_v2(hash string) MagnetBuilder {
 pub fn (mut b MagnetBuilder) set_info_hash_bytes(hash []u8) MagnetBuilder {
 	// Convert []u8 to [20]u8
 	mut fixed_hash := [20]u8{}
-	for i in 0..20 {
+	for i in 0 .. 20 {
 		if i < hash.len {
 			fixed_hash[i] = hash[i]
 		}
@@ -177,50 +177,50 @@ pub fn (mut b MagnetBuilder) build() !MagnetLink {
 	// Validate required fields
 	if b.magnet.info_hash.len == 0 && b.magnet.info_hash_v2.len == 0 {
 		return error(MagnetError{
-			msg: 'at least one info hash (v1 or v2) is required'
+			msg:   'at least one info hash (v1 or v2) is required'
 			param: 'xt'
 		}.msg())
 	}
-	
+
 	// Validate hash formats
 	if b.magnet.info_hash.len > 0 {
 		if b.magnet.info_hash.len != 40 || !is_hex(b.magnet.info_hash) {
 			return error(MagnetError{
-				msg: 'v1 info hash must be 40 hex characters'
+				msg:   'v1 info hash must be 40 hex characters'
 				param: 'xt'
 			}.msg())
 		}
 	}
-	
+
 	if b.magnet.info_hash_v2.len > 0 {
 		if b.magnet.info_hash_v2.len < 4 || !is_hex(b.magnet.info_hash_v2) {
 			return error(MagnetError{
-				msg: 'v2 info hash must be valid hex multihash'
+				msg:   'v2 info hash must be valid hex multihash'
 				param: 'xt'
 			}.msg())
 		}
 	}
-	
+
 	// Validate tracker URLs
 	for tracker in b.magnet.trackers {
 		if !is_valid_url(tracker) {
 			return error(MagnetError{
-				msg: 'invalid tracker URL: ${tracker}'
+				msg:   'invalid tracker URL: ${tracker}'
 				param: 'tr'
 			}.msg())
 		}
 	}
-	
+
 	// Validate peer addresses
 	for peer in b.magnet.peers {
 		if !is_valid_peer_address(peer) {
 			return error(MagnetError{
-				msg: 'invalid peer address: ${peer}'
+				msg:   'invalid peer address: ${peer}'
 				param: 'x.pe'
 			}.msg())
 		}
 	}
-	
+
 	return b.magnet
 }
 

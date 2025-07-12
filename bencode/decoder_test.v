@@ -178,13 +178,13 @@ fn test_binary_key_ordering() {
 	mut data := []u8{}
 	data << 'd'.bytes()
 	data << '1:'.bytes()
-	data << [u8(0x00)]  // First key: single null byte
+	data << [u8(0x00)] // First key: single null byte
 	data << 'i1e'.bytes()
 	data << '1:'.bytes()
-	data << [u8(0x01)]  // Second key: single byte with value 1
+	data << [u8(0x01)] // Second key: single byte with value 1
 	data << 'i2e'.bytes()
 	data << '1:'.bytes()
-	data << [u8(0xFF)]  // Third key: single byte with value 255
+	data << [u8(0xFF)] // Third key: single byte with value 255
 	data << 'i3e'.bytes()
 	data << 'e'.bytes()
 
@@ -196,10 +196,10 @@ fn test_binary_key_ordering() {
 	mut data2 := []u8{}
 	data2 << 'd'.bytes()
 	data2 << '1:'.bytes()
-	data2 << [u8(0xFF)]  // Wrong order: 255 first
+	data2 << [u8(0xFF)] // Wrong order: 255 first
 	data2 << 'i1e'.bytes()
 	data2 << '1:'.bytes()
-	data2 << [u8(0x00)]  // Then 0
+	data2 << [u8(0x00)] // Then 0
 	data2 << 'i2e'.bytes()
 	data2 << 'e'.bytes()
 
@@ -211,12 +211,12 @@ fn test_binary_key_ordering() {
 fn test_depth_limiting() {
 	// Create deeply nested structure
 	mut data := []u8{}
-	
+
 	// Create 60 nested lists (exceeds default limit of 50)
-	for _ in 0..60 {
+	for _ in 0 .. 60 {
 		data << 'l'.bytes()
 	}
-	for _ in 0..60 {
+	for _ in 0 .. 60 {
 		data << 'e'.bytes()
 	}
 
@@ -227,10 +227,10 @@ fn test_depth_limiting() {
 
 	// Test with custom limit
 	mut small_data := []u8{}
-	for _ in 0..5 {
+	for _ in 0 .. 5 {
 		small_data << 'l'.bytes()
 	}
-	for _ in 0..5 {
+	for _ in 0 .. 5 {
 		small_data << 'e'.bytes()
 	}
 
@@ -248,7 +248,7 @@ fn test_memory_limiting() {
 	// Create large string that exceeds memory limit
 	large_size := 150_000_000 // 150MB
 	size_str := large_size.str()
-	
+
 	mut data := []u8{}
 	data << size_str.bytes()
 	data << ':'.bytes()
@@ -311,7 +311,7 @@ fn test_real_world_torrent_like_data() {
 	data := 'd8:announce9:test:12346:lengthi1024e4:name8:test.txt12:piece lengthi262144e6:pieces20:01234567890123456789e'.bytes()
 	result := decode(data) or { panic(err) }
 	dict_val := result.as_dict() or { panic('expected dictionary') }
-	
+
 	assert 'announce' in dict_val
 	assert 'length' in dict_val
 	assert 'name' in dict_val
@@ -324,7 +324,7 @@ fn test_unicode_and_binary_strings() {
 	mut data := []u8{}
 	data << '4:'.bytes()
 	data << [u8(0x00), 0xFF, 0x80, 0x7F] // Various byte values
-	
+
 	result := decode(data) or { panic(err) }
 	str_val := result.as_string() or { panic('expected string') }
 	assert str_val.len == 4
@@ -356,7 +356,7 @@ fn test_validation_functions() {
 	// Test custom limits - create properly nested structure
 	nested_data := 'lllllleeeeee'.bytes() // 6 levels deep: [[[[[[]]]]]]
 	assert validate_with_limits(nested_data, 10, 1000) or { panic(err) }
-	
+
 	if _ := validate_with_limits(nested_data, 3, 1000) {
 		panic('should have failed validation due to depth limit')
 	}

@@ -28,7 +28,7 @@ pub fn new_torrent_builder() torrent.TorrentBuilder {
 	return torrent.new_builder()
 }
 
-// Create a new magnet builder  
+// Create a new magnet builder
 pub fn new_magnet_builder() magnet.MagnetBuilder {
 	return magnet.new_builder()
 }
@@ -69,14 +69,14 @@ pub:
 
 pub fn get_info(metadata torrent.TorrentMetadata) TorrentInfo {
 	return TorrentInfo{
-		name: metadata.info.name
-		size: metadata.total_size()
-		file_count: metadata.file_count()
+		name:        metadata.info.name
+		size:        metadata.total_size()
+		file_count:  metadata.file_count()
 		piece_count: metadata.piece_count()
-		info_hash: torrent.format_hash(metadata.info_hash[..])
-		announce: metadata.announce
-		is_private: metadata.info.private or { false }
-		trackers: metadata.get_trackers()
+		info_hash:   torrent.format_hash(metadata.info_hash[..])
+		announce:    metadata.announce
+		is_private:  metadata.info.private or { false }
+		trackers:    metadata.get_trackers()
 	}
 }
 
@@ -87,19 +87,23 @@ pub fn get_info_from_file(path string) !TorrentInfo {
 
 pub fn get_info_from_magnet(uri string) !TorrentInfo {
 	magnet_link := parse_magnet(uri)!
-	
+
 	// Extract basic info from magnet
 	mut info := TorrentInfo{
-		name: if magnet_link.display_name.len > 0 { magnet_link.display_name } else { 'Unknown' }
-		size: magnet_link.exact_length
-		file_count: if magnet_link.exact_length > 0 { 1 } else { 0 }
+		name:        if magnet_link.display_name.len > 0 {
+			magnet_link.display_name
+		} else {
+			'Unknown'
+		}
+		size:        magnet_link.exact_length
+		file_count:  if magnet_link.exact_length > 0 { 1 } else { 0 }
 		piece_count: 0 // Cannot determine from magnet alone
-		info_hash: magnet_link.get_primary_hash()
-		announce: if magnet_link.trackers.len > 0 { magnet_link.trackers[0] } else { '' }
-		is_private: false // Cannot determine from magnet alone
-		trackers: magnet_link.trackers
+		info_hash:   magnet_link.get_primary_hash()
+		announce:    if magnet_link.trackers.len > 0 { magnet_link.trackers[0] } else { '' }
+		is_private:  false // Cannot determine from magnet alone
+		trackers:    magnet_link.trackers
 	}
-	
+
 	return info
 }
 
@@ -113,7 +117,7 @@ pub fn parse_info_hash(hex_string string) ?[20]u8 {
 	if hash_bytes.len != 20 {
 		return none
 	}
-	
+
 	mut result := [20]u8{}
 	for i, b in hash_bytes {
 		result[i] = b
