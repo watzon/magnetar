@@ -1,5 +1,9 @@
 # Magnetar
 
+[![CI](https://github.com/watzon/magnetar/actions/workflows/ci.yml/badge.svg)](https://github.com/watzon/magnetar/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![V Version](https://img.shields.io/badge/V-0.4+-blue.svg)](https://vlang.io)
+
 A high-performance BitTorrent parsing and manipulation library written in V. Magnetar provides zero-dependency, memory-safe operations for working with torrent files, bencode data, and magnet links.
 
 ## Features

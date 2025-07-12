@@ -31,9 +31,6 @@ jobs:
           v fmt -diff .
           v fmt -verify .
 
-      - name: Build project
-        run: v .
-
       - name: Run tests
         run: v test .
 
